@@ -1,0 +1,86 @@
+X=[1 0.8 0.7 0.4 0.1 0 0 0 0 0 0 0 0;
+   0.2 0.7 1 0.7 0.3 0 0 0 0 0 0 0 0;
+   0 0.1 0.3 0.7 1 0.7 0.2 0 0 0 0 0 0 ;
+   0 0 0 0 0.1 0.6 1 0 0 0 0 0 0 ;
+   0 0 0 0 0 0 1 0.6 1 0 0 0 0 ;
+   0 0 0 0 0 0 0.2 0.7 1 0.7 0.3 0.1 0;
+   0 0 0 0 0 0 0 0 0.2 0.7 1 0.7 0.3;
+   0 0 0 0 0 0 0 0 0.1 0.4 0.7 0.8 1];
+
+Y=[1 0.7 0.3 0 0 0 0 0 0 0 0 0 0;
+   0.3 0.7 1 0.7 0.3 0 0 0 0 0 0 0 0;
+   0 0 0.3 0.7 1 0.7 0.3 0 0 0 0 0 0;
+   0 0 0 0 0.3 0.7 1 0.7 0.3 0 0 0 0;
+   0 0 0 0 0 0 0.3 0.7 1 0.7 0.3 0 0;
+   0 0 0 0 0 0 0 0 0.3 0.7 1 0.7 0.3;
+   0 0 0 0 0 0 0 0 0 0 0.3 0.7 1];
+
+T=[1 1 1 1 2 4 4;
+   1 1 1 1 2 4 4;
+   2 2 2 2 4 5 5;
+   2 2 3 4 5 6 6;
+   2 2 3 4 5 6 6;
+   3 3 4 6 6 6 6;
+   4 4 6 7 7 7 7;
+   4 4 6 7 7 7 7;];
+
+V=[-6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 ];
+
+for i=1:13   %X
+    for j=1:13   %Y
+        for m=1:8    %X
+            for n=1:7  %Y
+                %%%%%%%计算R_iA R_iB%%%%%%%%%%%%
+                for ii=1:13
+                    for jj=1:13
+                        R_A(ii,jj)=min(X(m,ii)',Y(T(m,n),jj));
+                        R_B(ii,jj)=min(Y(n,ii)',Y(T(m,n),jj));
+                    end
+                end
+                %%%%%%%计算C_iA C_iB%%%%%%%%%%%%
+                A_star=zeros(1,13);
+                B_star=zeros(1,13); 
+                A_star(1,i)=1;
+                B_star(1,j)=1;
+                %%%%%先取小
+                for ii=1:13
+                    for jj=1:13
+                        c_ia(ii,jj)=min(A_star(1,jj),R_A(jj,ii));  
+                        c_ib(ii,jj)=min(B_star(1,jj),R_B(jj,ii)); 
+                    end
+                end
+                %%%%%%%再取大
+                for ii=1:13
+                    max_a=c_ia(ii,1);
+                    max_b=c_ib(ii,1);
+                    for jj=1:13
+                        if c_ia(ii,jj)>max_a
+                            max_a=c_ia(ii,jj);
+                        end
+                        if c_ib(ii,jj)>max_b
+                            max_b=c_ib(ii,jj);
+                        end
+                    end
+                    C_iA(1,ii)=max_a;
+                    C_iB(1,ii)=max_b;
+                    C_i((m-1)*7+n,ii)=min(C_iA(1,ii),C_iB(1,ii));
+                end
+            end
+        end
+        %%%%%取56个C的并=Ui%%%%%%%%%%
+        for ii=1:13
+            max=C_i(1,ii);
+            for jj=1:56
+                if C_i(jj,ii)>max
+                    max=C_i(jj,ii);
+                end
+            end
+            Ui(ii)=max;
+        end
+        %%%%%解模糊化%%%%%%%%%%%%
+         for jj=1:1:13
+             z(1,jj)=V(1,jj)*Ui(1,jj);
+         end
+        Z(i,j)=sum(z(1,:))/(sum(Ui(1,:)));
+    end
+end
